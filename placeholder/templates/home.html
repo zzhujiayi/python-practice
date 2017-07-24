@@ -1,0 +1,23 @@
+{% load staticfiles %}
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta name="utf-8">
+        <title>Django Placeholder Images</title>
+        <link rel="stylesheep" type="text/css" href="{% static 'site.css' %}">
+    </head>
+    <body>
+        <h1>Django Placeholder Images</h1>
+        <p>This Server can be used for serving Placeholder Images for any web page.</p>
+        <p>To Request a Placeholder Images of a given width and height simply include an image with the source pointing to <b>/image/&lt;width&gt;&lt;height&gt;</b>on this server such as:</p>
+        <pre>
+        &lt;img src="{{ example }}" &gt;
+        </pre>
+        <h2>Examples</h2>
+        <ul>
+            <li><img src="{% url 'placeholder' width=50 height=50 %}" alt=""></li>
+            <li><img src="{% url 'placeholder' width=100 height=50 %}" alt=""></li>
+            <li><img src="{% url 'placeholder' width=50 height=100 %}" alt=""></li>
+        </ul>
+    </body>
+</html>
