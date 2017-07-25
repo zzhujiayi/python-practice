@@ -16,7 +16,7 @@ from django.shortcuts import render
 DEBUG = os.environ.get("DEBUG", 'on')
 SECRET_KEY = os.environ.get(
     "SECRET_KEY", 'gj6lf!)$*2ycr4i#dwkj&cir!ljfe$p47^-$s7zi^l@9svivuf')
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 BASE_DIR = os.path.dirname(__file__)
 
 settings.configure(
@@ -34,7 +34,7 @@ settings.configure(
     ),
     TEMPLATES=(
         {
-            'BAKEND': 'django.template.bakends.django.DjangoTemplates',
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'DIRS': (os.path.join(BASE_DIR, 'templates'),),
         },
     ),
@@ -54,8 +54,8 @@ class ImageForm(forms.Form):
     width = forms.IntegerField(min_value=1, max_value=2000)
 
     def generate(self, image_format='PNG'):
-        width = forms.cleaned_data['width']
-        height = forms.cleaned_data['height']
+        width = self.cleaned_data['width']
+        height = self.cleaned_data['height']
         key = '{}.{}.{}'.format(width, height, image_format)
         content = cache.get(key)
         if content is None:
@@ -93,7 +93,7 @@ def placeholder(request, width, height):
 def index(request):
     example = reverse('placeholder', kwargs={'width': 50, 'height': 50})
     context = {
-        'example': request.build_absolute_url(example)
+        'example': request.build_absolute_uri(example)
     }
 
     return render(request, 'home.html', context)
