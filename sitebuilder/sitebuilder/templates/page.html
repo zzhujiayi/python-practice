@@ -1,8 +1,4 @@
 {% extends "base.html" %} 
-{% block title %}
-{{ block.super }} - {{ slug|capfirst }} 
-{% endblock %}
-
-{% block content %}
-    {% include page %}
-{% endblock %}
+{% block title %} {{ block.super }} - {{ slug|capfirst }} {% endblock %} 
+{% block body-id %} {{slug|slugify }} {% endblock %} 
+{% block content %} {% include page %} {% endblock %}
