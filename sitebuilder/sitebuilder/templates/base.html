@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load staticfiles compress %}
 <!DOCTYPE HTML>
 <html>
 
@@ -7,9 +7,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,intital-scale=1">
     <title>{% block title %} Rapid prototypes {% endblock %}</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/tether.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/site.css' %}">
+    {% compress css %}
+        <link rel="stylesheet" type="text/css" href="{% static 'css/tether.css' %}">
+        <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'css/site.css' %}">
+    {% endcompress %}
 </head>
 
 <body id="{% block body-id %}body{% endblock %}">
@@ -41,10 +43,11 @@
 
     {% endblock top-nav-wrapper %} {% block content %} {% endblock %}
 
-    <script src="{% static 'js/jquery-3.2.1.js' %}"></script>
-    <script src="{% static 'js/tether.js' %}"></script>
-    <script src="{% static 'js/bootstrap.js' %}"></script>
-
+    {% compress js %}
+        <script src="{% static 'js/jquery-3.2.1.js' %}"></script>
+        <script src="{% static 'js/tether.js' %}"></script>
+        <script src="{% static 'js/bootstrap.js' %}"></script>
+    {% endcompress%}
 </body>
 
 </html>
