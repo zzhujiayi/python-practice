@@ -76,6 +76,10 @@ DATABASES = {
         #'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'scrum',
+        'USER': 'postgres',
+        'PASSWORD': 'sa',
+        #'HOST': 'localhost',
+        #'PORT': ''
     }
 }
 
