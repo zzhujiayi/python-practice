@@ -30,11 +30,11 @@ class Task(models.Model):
     )
 
     name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, default=""),
+    description = models.TextField(blank=True, default="")
     spring = models.ForeignKey(Spring, blank=True, null=True)
     status = models.SmallIntegerField(
         choices=STATUS_CHOICES, default=STATUS_TODO)
-    orer = models.SmallIntegerField(default=0)
+    order = models.SmallIntegerField(default=0)
     assigned = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True)
     started = models.DateField(blank=True, null=True)

@@ -1,10 +1,11 @@
-from rest_framework import viewsets, authentication, permissions
+from rest_framework import viewsets, authentication, permissions, filters
 from .models import Spring, Task
 from .serializers import SpringSerializer, TaskSerializer, UserSerializer
 from django.contrib.auth import get_user_model
 # Create your views here.
 
 User = get_user_model()
+
 
 class DefaultsMixin(object):
     authentication_classes = (
@@ -13,12 +14,17 @@ class DefaultsMixin(object):
     )
 
     permission_classes = (
-        permissions.IsAuthenticated
+        permissions.IsAuthenticated,
     )
 
     paginate_by = 25
     paginate_by_param = 'page_size'
     max_paginate_by = 100
+    filter_backends = (
+        filters.DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter
+    )
 
 
 class SpringViewSet(viewsets.ModelViewSet):

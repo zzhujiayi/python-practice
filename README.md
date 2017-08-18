@@ -1,6 +1,6 @@
 # python-practice
 
-84
+86
 
 fix the task page ex
 
