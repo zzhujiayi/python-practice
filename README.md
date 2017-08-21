@@ -1,8 +1,6 @@
 # python-practice
 
-86
-
-fix the task page ex
+91
 
 
 python manage.py createsuperuser

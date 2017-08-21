@@ -2,7 +2,7 @@ from rest_framework import viewsets, authentication, permissions, filters
 from .models import Spring, Task
 from .serializers import SpringSerializer, TaskSerializer, UserSerializer
 from django.contrib.auth import get_user_model
-# Create your views here.
+import django_filters
 
 User = get_user_model()
 
@@ -27,14 +27,49 @@ class DefaultsMixin(object):
     )
 
 
+class SpringFilter(django_filters.FilterSet):
+    end_min = django_filters.DateFilter(name='end', lookup_type='get')
+    end_max = django_filters.DateFilter(name='end', lookup_type='lte')
+
+    class Meta:
+        model = Spring
+        fields = ('end_min', 'end_max',)
+
+
 class SpringViewSet(viewsets.ModelViewSet):
     queryset = Spring.objects.order_by('end')
     serializer_class = SpringSerializer
+    filter_class = SpringFilter
+    search_fields = ('name',)
+    ordering_fields = ('end', 'name',)
+
+
+class NullFilter(django_filters.BooleanFilter):
+    def filter(self, qs, value):
+        if value is not None:
+            return qs.filter({'%s__isnull' % self.name: value})
+        return qs
+
+
+class TaskFilter(django_filters.FilterSet):
+    backlog = NullFilter(name='spring')
+
+    class Meta:
+        model = Task
+        fields = ('spring', 'status', 'assigned', 'backlog',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filters['assigned'].extra.update(
+            {'to_field_name': User.USERNAME_FIELD})
 
 
 class TaskViewSet(DefaultsMixin, viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    filter_class = TaskFilter
+    search_fields = ('name', 'description')
+    ordering_fields = ('name', 'order', 'started', 'due', 'completed',)
 
 
 class UserViewset(DefaultsMixin, viewsets.ReadOnlyModelViewSet):
@@ -43,3 +78,5 @@ class UserViewset(DefaultsMixin, viewsets.ReadOnlyModelViewSet):
 
     queryset = User.objects.order_by(User.USERNAME_FIELD)
     serializer_class = UserSerializer
+
+    search_fields = (User.USERNAME_FIELD,)

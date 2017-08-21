@@ -16,7 +16,8 @@ class SpringSerializer(serializers.ModelSerializer):
     def get_links(self, obj):
         request = self.context['request']
         return {
-            'self': reverse('spring-detail', kwargs={'pk': obj.pk}, request=request)
+            'self': reverse('spring-detail', kwargs={'pk': obj.pk}, request=request),
+            'tasks': reverse('task-list', request=request) + '?spring={}'.format(obj.pk),
         }
 
 
@@ -64,6 +65,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_links(self, obj):
         request = self.context['request']
+        username = obj.get_username()
         return {
-            'self': reverse('user-detail', kwargs={User.USERNAME_FIELD: obj.pk}, request=request)
+            'self': reverse('user-detail', kwargs={User.USERNAME_FIELD: obj.pk}, request=request),
+            'tasks': '{}?assigned={}'.format(reverse('task-list', request=request), username)
         }
