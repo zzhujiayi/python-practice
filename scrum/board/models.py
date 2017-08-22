@@ -4,7 +4,7 @@ from django.conf import settings
 # Create your models here.
 
 
-class Spring(models.Model):
+class Sprint(models.Model):
     """Development iteration period"""
 
     name = models.CharField(max_length=100, blank=True, default="")
@@ -12,11 +12,11 @@ class Spring(models.Model):
     end = models.DateField(unique=True)
 
     def __str__(self):
-        return self.name or _('Spring ending %s') % self.end
+        return self.name or _('Sprint ending %s') % self.end
 
 
 class Task(models.Model):
-    """Unit of work to be done for the spring."""
+    """Unit of work to be done for the sprint."""
     STATUS_TODO = 1
     STATUS_IN_PROGRESS = 2
     STATUS_TESTING = 3
@@ -31,7 +31,7 @@ class Task(models.Model):
 
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, default="")
-    spring = models.ForeignKey(Spring, blank=True, null=True)
+    sprint = models.ForeignKey(Sprint, blank=True, null=True)
     status = models.SmallIntegerField(
         choices=STATUS_CHOICES, default=STATUS_TODO)
     order = models.SmallIntegerField(default=0)

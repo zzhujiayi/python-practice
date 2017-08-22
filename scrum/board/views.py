@@ -1,6 +1,6 @@
 from rest_framework import viewsets, authentication, permissions, filters
-from .models import Spring, Task
-from .serializers import SpringSerializer, TaskSerializer, UserSerializer
+from .models import Sprint, Task
+from .serializers import SprintSerializer, TaskSerializer, UserSerializer
 from django.contrib.auth import get_user_model
 import django_filters
 
@@ -27,19 +27,19 @@ class DefaultsMixin(object):
     )
 
 
-class SpringFilter(django_filters.FilterSet):
+class SprintFilter(django_filters.FilterSet):
     end_min = django_filters.DateFilter(name='end', lookup_type='get')
     end_max = django_filters.DateFilter(name='end', lookup_type='lte')
 
     class Meta:
-        model = Spring
+        model = Sprint
         fields = ('end_min', 'end_max',)
 
 
-class SpringViewSet(viewsets.ModelViewSet):
-    queryset = Spring.objects.order_by('end')
-    serializer_class = SpringSerializer
-    filter_class = SpringFilter
+class SprintViewSet(viewsets.ModelViewSet):
+    queryset = Sprint.objects.order_by('end')
+    serializer_class = SprintSerializer
+    filter_class = SprintFilter
     search_fields = ('name',)
     ordering_fields = ('end', 'name',)
 
@@ -52,11 +52,11 @@ class NullFilter(django_filters.BooleanFilter):
 
 
 class TaskFilter(django_filters.FilterSet):
-    backlog = NullFilter(name='spring')
+    backlog = NullFilter(name='sprint')
 
     class Meta:
         model = Task
-        fields = ('spring', 'status', 'assigned', 'backlog',)
+        fields = ('sprint', 'status', 'assigned', 'backlog',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
