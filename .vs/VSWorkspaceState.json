@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\scrum",
+    "\\scrum\\board",
+    "\\scrum\\board\\static",
+    "\\scrum\\board\\static\\board",
+    "\\scrum\\board\\static\\board\\js",
+    "\\scrum\\board\\static\\vendor",
+    "\\scrum\\scrum"
+  ],
+  "SelectedNode": "\\scrum\\board\\static\\board\\js\\views.js",
+  "PreviewInSolutionExplorer": false
+}
