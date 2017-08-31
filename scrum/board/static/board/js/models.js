@@ -58,7 +58,7 @@
         },
         _setupAuth: function (settings, originalOptions, xhr) {
             if (this.authenticated()) {
-                xhr.setRequestHeader('Authorization', 'Token ' + this.get('totken'));
+                xhr.setRequestHeader('Authorization', 'Token ' + this.get('token'));
             }
         }
     });
@@ -79,13 +79,14 @@
 
     var BaseCollection = Backbone.Collection.extend({
         parse: function (response) {
-            this._next = response.next;
-            this._previous = response.previous;
-            this._count = response.count;
-            return response.results || [];
+            // this._next = response.next;
+            // this._previous = response.previous;
+            // this._count = response.count;
+            // return response.results || [];
+            return response;
         },
         getOrFetch: function (id) {
-            var resule = new $.Deferred(),
+            var result = new $.Deferred(),
                 model = this.get(id);
             if (!model) {
                 model = this.push({
@@ -107,8 +108,36 @@
         }
     })
 
-    app.models.Sprint = BaseModel.extend({});
-    app.models.Task = BaseModel.extend({});
+    app.models.Sprint = BaseModel.extend({
+        fetchTasks: function () {
+            var links = this.get('links');
+            if (links && links.tasks) {
+                app.tasks.fetch({
+                    url: links.tasks,
+                    remove: false
+                });
+            }
+        }
+    });
+    app.models.Task = BaseModel.extend({
+        statusClass: function () {
+            var sprint = this.get('sprint'),
+                status;
+            if (!sprint) {
+                status = 'unassigned';
+            } else {
+                status = ['todo', 'active', 'testing', 'done'][this.get('status') - 1];
+            }
+
+            return status;
+        },
+        inBacklog: function () {
+            return !this.get('sprint');
+        },
+        inSprint: function (sprint) {
+            return sprint.get('id') == this.get('sprint');
+        }
+    });
     app.models.User = BaseModel.extend({
         idAttributemodel: 'username'
     });
@@ -116,13 +145,24 @@
     app.collections.ready.done(function (data) {
         app.collections.Sprints = BaseCollection.extend({
             model: app.models.Sprint,
-            url: data.sprints
+            url: data.sprints,
+            parse: function (response) {
+                return response;
+            }
         });
         app.sprints = new app.collections.Sprints();
 
         app.collections.Tasks = BaseCollection.extend({
             model: app.models.Task,
-            url: data.tasks
+            url: data.tasks,
+            getBacklog: function () {
+                this.fetch({
+                    remove: false,
+                    data: {
+                        backlog: 'true'
+                    }
+                });
+            }
         });
         app.tasks = new app.collections.Tasks();
 
