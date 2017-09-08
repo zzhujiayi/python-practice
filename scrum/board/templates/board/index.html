@@ -14,7 +14,7 @@
         <h2>Your Sprints</h2>
         <button type="submit" class="add">Add Sprint</button>
         <% if (sprints !== null) { %>
-            <div  class="sprints">
+            <div class="sprints">
                 <% _.each(sprints.models, function(sprint){ %>
                     <a href="#sprint/<%- sprint.get('id') %>" class="sprint">
                         <%- sprint.get('name') %><br>

@@ -1,7 +1,6 @@
 # python-practice
 
-165
-
+177
 
 python manage.py createsuperuser
 superuser:demo
