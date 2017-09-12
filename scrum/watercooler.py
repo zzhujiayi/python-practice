@@ -11,7 +11,7 @@ from tornado.websocket import WebSocketHandler, WebSocketClosedError
 from tornado.httpserver import HTTPServer
 
 
-define('debug', default=False, type=bool, help='Run in debug mode')
+define('debug', default=True, type=bool, help='Run in debug mode')
 define('port', default=8080, type=int, help='Server port')
 define('allowed_hosts', default='localhost:8080', multiple=True,
        help='Allowed hosts for cross domain connections')
@@ -24,7 +24,7 @@ class SprintHandler(WebSocketHandler):
         allowed = super().check_origin(origin)
         parsed = urlparse(origin.lower())
         matched = any(parsed.netloc == host for host in options.allowed_hosts)
-        return allowed or parsed.netloc.startswith('localhosts:')
+        return options.debug or allowed or matched
 
     def open(self, sprint):
         """Subscribe to sprint updates on a new connection"""
@@ -43,7 +43,7 @@ class SprintHandler(WebSocketHandler):
 class ScrumApplication(Application):
     def __init__(self, **kwargs):
         routes = [
-            (r'/(?P<sprint>[0-1]+)', SprintHandler),
+            (r'/(?P<sprint>[0-9]+)', SprintHandler),
         ]
         super().__init__(routes, **kwargs)
         self.subscriptions = defaultdict(list)
@@ -62,7 +62,7 @@ class ScrumApplication(Application):
             for c in self.subscriptions.keys():
                 self.broadcast(message, channel=c, sender=sender)
         else:
-            peers: self.get_subscribers(channel)
+            peers = self.get_subscribers(channel)
             for peer in peers:
                 if peer != sender:
                     try:

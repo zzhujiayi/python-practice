@@ -18,7 +18,7 @@
                 "RedirectOutput"
             ],
             "args": [
-                "runserver"
+                
             ]
         },
         {
