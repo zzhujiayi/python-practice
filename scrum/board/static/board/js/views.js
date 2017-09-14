@@ -265,7 +265,7 @@
                 event.stopPropagation();
             }
 
-            task = app.tasks.get(task);
+            task = app.tasks.get(taskId);
             tasks = app.tasks.where({ sprint: this.sprint, status: this.status });
             if (tasks.length) {
                 order = _.min(_.map(tasks, function (model) {
@@ -277,6 +277,7 @@
             }
 
             task.moveTo(this.status, this.sprint, order = -1);
+            debugger;
             this.trigger('drop', taskId);
             this.leave();
         }
