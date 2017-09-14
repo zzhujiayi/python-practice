@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from .models import Sprint, Task
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.reverse import reverse
 from datetime import date
 from django.utils.translation import ugettext_lazy as _
+
 User = get_user_model()
 
 
@@ -19,6 +21,11 @@ class SprintSerializer(serializers.ModelSerializer):
         return {
             'self': reverse('sprint-detail', kwargs={'pk': obj.pk}, request=request),
             'tasks': reverse('task-list', request=request) + '?sprint={}'.format(obj.pk),
+            'channel': '{proto}://{server}/{channel}'.format(
+                proto='wss' if settings.WATERCOOLER_SECURE else 'ws',
+                server=settings.WATERCOOLER_SERVER,
+                channel=obj.pk
+            ),
         }
 
     def validate_end(self, value):

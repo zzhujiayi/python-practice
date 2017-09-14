@@ -1,6 +1,7 @@
 (function ($, Backbone, _, app) {
     var Socket = function (server) {
         this.ws = null;
+        this.server = server;
         this.connected = new $.Deferred();
         this.open();
     }
