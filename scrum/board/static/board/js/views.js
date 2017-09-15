@@ -266,13 +266,15 @@
             }
 
             task = app.tasks.get(taskId);
-            tasks = app.tasks.where({ sprint: this.sprint, status: this.status });
+            tasks = app.tasks.where({
+                sprint: this.sprint,
+                status: this.status
+            });
             if (tasks.length) {
                 order = _.min(_.map(tasks, function (model) {
                     return model.get('order');
                 }));
-            }
-            else {
+            } else {
                 order = 1;
             }
 
@@ -306,7 +308,7 @@
         },
         submit: function (event) {
             FormView.prototype.submit.apply(this, arguments);
-            this.task.save(this.change, {
+            this.task.save(this.changes, {
                 wait: true,
                 success: $.proxy(this.success, this),
                 error: $.proxy(this.modelFailure, this)
@@ -428,7 +430,9 @@
                         model.get('order') >= order;
                 });
                 _.each(tasks, function (model, i) {
-                    model.save({ order: order + (i + 1) });
+                    model.save({
+                        order: order + (i + 1)
+                    });
                 });
                 task.moveTo(this.task.get("status"), this.task.get('sprint'), order);
             }
@@ -581,6 +585,26 @@
                     if (view) {
                         view.unlock();
                     }
+                }, this);
+
+                this.socket.on('task:add', function (task, result) {
+                    var model = app.tasks.push({
+                        id: task
+                    });
+                    model.fetch();
+                }, this);
+
+                this.socket.on('task:update', function (task, result) {
+                    var model = app.tasks.get(task);
+                    if (model) {
+                        model.fetch();
+                    }
+                }, this);
+
+                this.socket.on('task:remove', function (task) {
+                    app.tasks.remove({
+                        id: task
+                    });
                 }, this);
             }
         },
