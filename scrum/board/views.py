@@ -1,4 +1,5 @@
 import requests
+import hashlib
 from rest_framework import viewsets, authentication, permissions, filters
 from .models import Sprint, Task
 from .serializers import SprintSerializer, TaskSerializer, UserSerializer
@@ -6,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 import django_filters
 from rest_framework.renderers import JSONRenderer
+from django.core.signing import TimestampSigner
 
 User = get_user_model()
 
@@ -48,8 +50,14 @@ class UpdateHookMixin(object):
         else:
             model = obj.__class__.__name__.lower()
 
-        return "{}://{}/{}/{}".format('https' if settings.WATERCOOLER_SECURE else'http',
+        return "{}://{}/{}/{}".format('https' if settings.WATERCOOLER_SECURE else 'http',
                                       settings.WATERCOOLER_SERVER, model, obj.pk)
+
+    def _build_hook_signature(self, method, url, body):
+        signer = TimestampSigner(settings.WATERCOOLER_SECRET)
+        value = '{method}:{url}:{body}'.format(
+            method=method.lower(), url=url, body=hashlib.sha256(body or b'').hexdigest())
+        return signer.sign(value)
 
     def _send_hook_request(self, obj, method):
         url = self._build_hook_url(obj)
@@ -62,7 +70,8 @@ class UpdateHookMixin(object):
         else:
             body = None
         handers = {
-            'content-type': 'application/json'
+            'content-type': 'application/json',
+            'X-Signature': self._build_hook_signature(method,url,body)
         }
 
         try:

@@ -1,20 +1,23 @@
+import hashlib
 import json
 import logging
 import signal
 import time
 import uuid
 
-from collections import defaultdict
 from urllib.parse import urlparse
-from tornado.ioloop import IOLoop
-from tornado.options import define, parse_command_line, options
-from tornado.web import Application, RequestHandler
-from tornado.websocket import WebSocketHandler, WebSocketClosedError
-from tornado.httpserver import HTTPServer
+
+from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
+from django.utils.crypto import constant_time_compare
 from redis import Redis
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
+from tornado.options import define, options, parse_command_line
+from tornado.web import Application, HTTPError, RequestHandler
+from tornado.websocket import WebSocketClosedError, WebSocketHandler
 from tornadoredis import Client
 from tornadoredis.pubsub import BaseSubscriber
-from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+
 
 define('debug', default=True, type=bool, help='Run in debug mode')
 define('port', default=8080, type=int, help='Server port')
@@ -72,10 +75,30 @@ class UpdateHandle(RequestHandler):
         self._broadcast(model, pk, 'remove')
 
     def _broadcast(self, model, pk, action):
+        signature = self.request.headers.get('X-Signature', None)
+        if not signature:
+            raise HTTPError(400)
+        try:
+            result = self.application.signer.unsign(signature, max_age=60 * 1)
+        except (BadSignature, SignatureExpired):
+            raise HTTPError(400)
+        else:
+            expected = '{method}:{url}:{body}'.format(
+                method=self.request.lower(),
+                url=self.request.full_url(),
+                body=hashlib.sha256(self.request.body).hexdigest()
+            )
+            if not constant_time_compare(result, expected):
+                raise HTTPError(400)
+        try:
+            body = json.loads(self.request.body.decode('utf-8'))
+        except ValueError:
+            body = None
         message = json.dumps({
             'model': model,
             'id': pk,
             'action': action,
+            'body': body
         })
         self.application.broadcast(message)
         self.write("OK")
@@ -100,7 +123,7 @@ class RedisSubscriber(BaseSubscriber):
                         subscriber.write_message(msg.body)
                     except:
                         tornado.websocket.WebSocketClosedError:
-                            # Remove dead peer
+                        # Remove dead peer
                         self.unsubscribe(msg.channel, subscriber)
 
         super().on_message(msg)
@@ -110,12 +133,13 @@ class ScrumApplication(Application):
     def __init__(self, **kwargs):
         routes = [
             (r'/socket', SprintHandler),
-            (r'/(?P<model>task|sprint|user)/(?P<pk>[0-9])', UpdateHandle),
+            (r'/(?P<model>task|sprint|user)/(?P<pk>[0-9]+)', UpdateHandle),
         ]
         super().__init__(routes, **kwargs)
         self.subscriber = RedisSubscriber(Client())
         self.publisher = Redis()
-        self._key = os.environ.get('WATERCOOLER_SECRET', 'pYywnywdu43JUEH233478hYOKsddTGW=')
+        self._key = os.environ.get(
+            'WATERCOOLER_SECRET', 'pYywnywdu43JUEH233478hYOKsddTGW=')
         self.signer = TimestampSigner(self._key)
 
     def add_subscriber(self, channel, subscriber):
